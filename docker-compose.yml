@@ -4,7 +4,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-proxy"
-      - "traefik.http.routers.emgvr.rule=Host(`vr.${DOMAIN}`)"
+      - "traefik.http.routers.emgvr.rule=Host(`${DOMAIN}`) && PathPrefix(`/`) || Host(`vr.${DOMAIN}`)"
       - "traefik.http.routers.emgvr.entrypoints=websecure,web"
       - "trafeik.http.routers.emgvr.tls=true"
       - "traefik.http.middlewares.emgvr-https-redirect.redirectscheme.scheme=https"
