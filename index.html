@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>atakanonol.dev | VR</title>
+  <meta name="description" content="atakanonol.dev VR">
+  <link rel="stylesheet" type="text/css" href="css/styles.css">
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js" defer></script>
+  <!-- <script src="js/aframe.js"></script> -->
+  <script src="https://kit.fontawesome.com/a689496340.js" crossorigin="anonymous" defer></script>
+  <script src="js/scripts.js" defer></script>
+</head>
+
+<body>
+  <div id="overlay">
+    <div class="overlay-message">
+      <p>
+        Please rotate your device for a better experience.
+      </p>
+
+      <i class="fas fa-regular fa-mobile fa-xxl"></i>
+
+      <p>
+        For the best experience, view on a desktop device.
+      </p>
+    </div>
+  </div>
+  <div style="display: none;" class="debug">
+    <label>
+      Rotation
+      <div>
+        <label>X:</label>
+        <button onclick="rotateXup()"">+</button>
+      <button onclick=" rotateXdown()"">-</button>
+      </div>
+      <div>
+        <label>Y:</label>
+        <button onclick="rotateYup()"">+</button>
+      <button onclick=" rotateYdown()"">-</button>
+      </div>
+      <div>
+        <label>Z:</label>
+        <button onclick="rotateZup()"">+</button>
+      <button onclick=" rotateZdown()"">-</button>
+      </div>
+    </label>
+    <label>
+      Position
+      <div>
+        <label>X:</label>
+        <button onclick="moveXup()"">+</button>
+    <button onclick=" moveXdown()"">-</button>
+      </div>
+      <div>
+        <label>Y:</label>
+        <button onclick="moveYup()"">+</button>
+    <button onclick=" moveYdown()"">-</button>
+      </div>
+      <div>
+        <label>Z:</label>
+        <button onclick="moveZup()"">+</button>
+    <button onclick=" moveZdown()"">-</button>
+      </div>
+    </label>
+    <div>
+      <button onclick="resetView()">Reset View</button>
+      <button onclick="getData()">Get Object Data</button>
+    </div>
+
+
+
+  </div>
+
+  <div id="mobile-controls" class="mobile-controls">
+    <div class="arrow-container">
+      <div class="arrow-top-row">
+        <img id="arrow-up-key" src="./assets/arrow-white.svg" style="transform: rotate(180deg);">
+      </div>
+      <div class="arrow-bottom-row">
+        <img id="arrow-left-key" src="./assets/arrow-white.svg" style="transform: rotate(90deg);">
+        <img id="arrow-down-key" src="./assets/arrow-white.svg">
+        <img id="arrow-right-key" src="./assets/arrow-white.svg" style="transform: rotate(270deg);">
+      </div>
+      <div class="enter-row">
+        <img id="enter-key" src="./assets/enter-key-white.svg">
+      </div>
+    </div>
+  </div>
+
+
+  <a-scene vr-mode-ui="cardboardModeEnabled: true" shadow="type: pcfsoft" obb-collider="showColliders: false">
+    <a-assets>
+      <img id="space" src="assets/space.webp">
+      <a-asset-item id="earth-gltf" src="assets/earth/low_poly_earth.gltf" material="shader:standard"></a-asset-item>
+      <a-asset-item id="sun-gltf" src="assets/sun/scene.gltf"></a-asset-item>
+      <a-asset-item id="plane-gltf" src="assets/vehicle/paper_plane.gltf" material="shader:standard"></a-asset-item>
+      <a-asset-item id="linkedin-mtl" src="assets/navigation/blue.mtl"></a-asset-item>
+      <a-asset-item id="linkedin-obj" src="assets/navigation/blue.obj"></a-asset-item>
+      <a-asset-item id="github-mtl" src="assets/navigation/red.mtl"></a-asset-item>
+      <a-asset-item id="github-obj" src="assets/navigation/red.obj"></a-asset-item>
+      <a-asset-item id="blog-mtl" src="assets/navigation/yellow.mtl"></a-asset-item>
+      <a-asset-item id="blog-obj" src="assets/navigation/yellow.obj"></a-asset-item>
+    </a-assets>
+
+    <a-text value="Hello World!" position="0 4 0" color="white" align="center" baseline="center" width="50"></a-text>
+    <a-entity>
+      <a-text id="desktop-directions" value="Use your arrow keys or WASD to fly around.\nWhen on a checkpoint marker, press enter or space to navigate there." position="0 -4 2" color="white" align="center" baseline="center" width="6" rotation="-90 0 0" opacity="0.6"></a-text>
+      <a-text id="mobile-directions" value="Use the onscreen arrow keys to fly around.\nWhen on a checkpoint marker, press the onscreen space to navigate there." position="0 -4 2" color="white" align="center" baseline="center" width="6" rotation="-90 0 0" opacity="0.6"></a-text>
+
+    </a-entity>
+
+    <a-entity>
+      <a-entity id="plane" rotation="0 0 0">
+        <a-gltf-model src="#plane-gltf" id="paper_plane" scale=".25 .25 .25" position="0 2 2"
+          rotation="70 -10 0"></a-gltf-model>
+        <a-entity id="shadow" geometry="primitive: cone; radiusBottom: .2; radiusTop: 0.1; height: 1.3"
+          material="shader: flat; color: black" position="0 1 1" rotation="60 0 10" obb-collider></a-entity>
+      </a-entity>
+
+      <a-entity id="earth" rotation="0 0 0">
+        <a-gltf-model src="#earth-gltf" scale="2 2 2"></a-gltf-model>
+        <a-entity scale="0.12 0.12 0.12" rotation="30 5 15" position="-0.4 1.2 1.8">
+          <a-obj-model id="linkedin-nav" src="#linkedin-obj" mtl="#linkedin-mtl"
+            animation="property: rotation; to: 0 360 0; loop: true; dur: 3000; easing: linear"
+            obb-collider></a-obj-model>
+        </a-entity>
+        <a-entity scale="0.12 0.12 0.12" rotation="60 150 15" position="1.5 1.2 -1.2">
+          <a-obj-model id="github-nav" src="#github-obj" mtl="#github-mtl"
+            animation="property: rotation; to: 0 360 0; loop: true; dur: 3000; easing: linear"
+            obb-collider></a-obj-model>
+        </a-entity>
+        <a-entity scale="0.12 0.12 0.12" rotation="60 225 35" position="-0.4 0.2 -2.2">
+          <a-obj-model id="blog-nav" src="#blog-obj" mtl="#blog-mtl"
+            animation="property: rotation; to: 0 360 0; loop: true; dur: 3000; easing: linear"
+            obb-collider></a-obj-model>
+        </a-entity>
+      </a-entity>
+    </a-entity>
+    </a-entity>
+
+    <a-entity id="sun" animation="property: rotation; to: 0 360 0; loop: true; dur: 60000">
+      <a-gltf-model src="#sun-gltf" position="40 0 150"
+        animation="property: rotation; to: 0 -360 0; loop: true; dur: 30000"></a-gltf-model>
+    </a-entity>
+
+    <a-sky src="#space"
+      animation="property: rotation; to: 0 360 0; loop: true; dur: 180000; easing: linear"></a-sky>></a-sky>
+
+    <a-entity id="camera" camera look-controls position="0 1 5" wasd-controls="enabled:false"></a-entity>
+  </a-scene>
+</body>
+
+</html>
