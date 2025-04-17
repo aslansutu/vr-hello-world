@@ -373,3 +373,10 @@ document
     // console.log("Collision details:", event.detail);
     nav_link = null;
   });
+
+document.querySelectorAll(".arrow-container img").forEach(img => {
+  if (img.id !== "enter-key") {
+    img.addEventListener("contextmenu", e => e.preventDefault()); // disables right-click / long-press menu
+    img.addEventListener("touchstart", e => e.preventDefault(), { passive: false }); // prevents default touch actions
+  }
+  });
