@@ -219,6 +219,12 @@ function handleMouseDown(event) {
     case "arrow-down-key":
       rotateDown = true;
       break;
+    case "enter-key":
+      if (nav_link == null) {
+        break;
+      }
+      window.open(nav_link, "_blank").location;
+      break;
   }
 }
 
