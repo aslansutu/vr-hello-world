@@ -1,6 +1,6 @@
 import {
   links,
-  mobileAndTabletCheck,
+  isTouchDevice,
   computeFlyUp, computeFlyDown, computeFlyLeft, computeFlyRight,
   getPlanePerspectiveTarget,
 } from './game-logic.js';
@@ -91,7 +91,7 @@ function handleMouseDown(event) {
       if (nav_link == null) {
         break;
       }
-      window.open(nav_link, "_blank").location;
+      window.open(nav_link, "_blank");
       break;
   }
 }
@@ -117,7 +117,7 @@ function handleMouseUp(event) {
 }
 
 function overlayCheck() {
-  let check = mobileAndTabletCheck(navigator.userAgent || navigator.vendor || window.opera);
+  let check = isTouchDevice();
 
   if (check == false) {
     document.getElementById("mobile-controls").style.display = "none";
@@ -185,7 +185,7 @@ document.body.addEventListener("keydown", function (event) {
       if (nav_link == null) {
         break;
       }
-      window.open(nav_link, "_blank").location;
+      window.open(nav_link, "_blank");
       break;
   }
 });

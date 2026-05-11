@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   ROTATION_STEP,
   X_TOP_LIMIT, X_BOTTOM_LIMIT,
   Y_TOP_LIMIT, Y_BOTTOM_LIMIT,
   links,
   toRadians,
-  mobileAndTabletCheck,
+  isTouchDevice,
   computeFlyUp, computeFlyDown, computeFlyLeft, computeFlyRight,
   getPlanePerspectiveTarget,
 } from '../../js/game-logic.js';
@@ -43,46 +43,40 @@ describe('links', () => {
     expect(links['blog-nav'].link).toBe('https://blog.atakanonol.dev'));
 });
 
-// ─── mobileAndTabletCheck ─────────────────────────────────────────────────────
+// ─── isTouchDevice ────────────────────────────────────────────────────────────
 
-describe('mobileAndTabletCheck', () => {
-  it('returns false for desktop Chrome on macOS', () =>
-    expect(mobileAndTabletCheck(
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
-    )).toBe(false));
+function mockMatchMedia(matches) {
+  vi.stubGlobal('matchMedia', (query) => ({
+    matches,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
+}
 
-  it('returns false for empty string', () =>
-    expect(mobileAndTabletCheck('')).toBe(false));
+describe('isTouchDevice', () => {
+  afterEach(() => { vi.unstubAllGlobals(); });
 
-  it('returns false for Firefox desktop', () =>
-    expect(mobileAndTabletCheck(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0'
-    )).toBe(false));
+  it('returns true when pointer is coarse (touch device)', () => {
+    mockMatchMedia(true);
+    expect(isTouchDevice()).toBe(true);
+  });
 
-  it('returns false for Safari desktop on macOS', () =>
-    expect(mobileAndTabletCheck(
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15'
-    )).toBe(false));
+  it('returns false when pointer is fine (mouse/desktop)', () => {
+    mockMatchMedia(false);
+    expect(isTouchDevice()).toBe(false);
+  });
 
-  it('returns true for iPhone', () =>
-    expect(mobileAndTabletCheck(
-      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
-    )).toBe(true));
-
-  it('returns true for Android Chrome', () =>
-    expect(mobileAndTabletCheck(
-      'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.143 Mobile Safari/537.36'
-    )).toBe(true));
-
-  it('returns true for iPad', () =>
-    expect(mobileAndTabletCheck(
-      'Mozilla/5.0 (iPad; CPU OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1'
-    )).toBe(true));
-
-  it('returns true for Amazon Silk (Kindle)', () =>
-    expect(mobileAndTabletCheck(
-      'Mozilla/5.0 (Linux; Android 9; KFMAWI) AppleWebKit/537.36 (KHTML, like Gecko) Silk/95.4.14 like Chrome/95.0.4638.74 Safari/537.36'
-    )).toBe(true));
+  it('passes the correct media query string', () => {
+    const matchMedia = vi.fn(() => ({ matches: false }));
+    vi.stubGlobal('matchMedia', matchMedia);
+    isTouchDevice();
+    expect(matchMedia).toHaveBeenCalledWith('(pointer: coarse)');
+  });
 });
 
 // ─── computeFlyUp ─────────────────────────────────────────────────────────────

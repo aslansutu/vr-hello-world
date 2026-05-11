@@ -41,7 +41,7 @@ button {
 }
 
 .mobile-controls img {
-    width: 4vw;
+    width: max(4vw, 44px);
 }
 
 .enter-row {
