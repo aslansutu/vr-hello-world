@@ -20,64 +20,52 @@ export function isTouchDevice() {
   return globalThis.matchMedia('(pointer: coarse)').matches;
 }
 
-export function computeFlyUp(planeRot, earthRot) {
+export function computeFlyUp(planeRot) {
   const plane = { x: planeRot.x, y: planeRot.y, z: planeRot.z };
-  const earth = { x: earthRot.x, y: earthRot.y, z: earthRot.z };
 
   if (plane.x - ROTATION_STEP < X_BOTTOM_LIMIT) {
     plane.x = X_BOTTOM_LIMIT;
-    earth.x += ROTATION_STEP * Math.cos(toRadians(earth.y));
-    earth.z += ROTATION_STEP * Math.sin(toRadians(earth.y));
-    return { plane, earth, earthMoved: true };
+    return { plane, earthDelta: { axisX: 1, axisY: 0, axisZ: 0, angleDeg: ROTATION_STEP } };
   }
 
   plane.x -= ROTATION_STEP;
-  return { plane, earth, earthMoved: false };
+  return { plane, earthDelta: null };
 }
 
-export function computeFlyDown(planeRot, earthRot) {
+export function computeFlyDown(planeRot) {
   const plane = { x: planeRot.x, y: planeRot.y, z: planeRot.z };
-  const earth = { x: earthRot.x, y: earthRot.y, z: earthRot.z };
 
   if (plane.x + ROTATION_STEP > X_TOP_LIMIT) {
     plane.x = X_TOP_LIMIT;
-    earth.x -= ROTATION_STEP * Math.cos(toRadians(earth.y));
-    earth.z -= ROTATION_STEP * Math.sin(toRadians(earth.y));
-    return { plane, earth, earthMoved: true };
+    return { plane, earthDelta: { axisX: 1, axisY: 0, axisZ: 0, angleDeg: -ROTATION_STEP } };
   }
 
   plane.x += ROTATION_STEP;
-  return { plane, earth, earthMoved: false };
+  return { plane, earthDelta: null };
 }
 
-export function computeFlyRight(planeRot, earthRot) {
+export function computeFlyRight(planeRot) {
   const plane = { x: planeRot.x, y: planeRot.y, z: planeRot.z };
-  const earth = { x: earthRot.x, y: earthRot.y, z: earthRot.z };
 
   if (plane.y + ROTATION_STEP > Y_TOP_LIMIT) {
     plane.y = Y_TOP_LIMIT;
-    earth.y -= ROTATION_STEP * Math.cos(toRadians(earth.x));
-    earth.z -= ROTATION_STEP * Math.sin(toRadians(earth.x));
-    return { plane, earth, earthMoved: true };
+    return { plane, earthDelta: { axisX: 0, axisY: 1, axisZ: 0, angleDeg: -ROTATION_STEP } };
   }
 
   plane.y += ROTATION_STEP;
-  return { plane, earth, earthMoved: false };
+  return { plane, earthDelta: null };
 }
 
-export function computeFlyLeft(planeRot, earthRot) {
+export function computeFlyLeft(planeRot) {
   const plane = { x: planeRot.x, y: planeRot.y, z: planeRot.z };
-  const earth = { x: earthRot.x, y: earthRot.y, z: earthRot.z };
 
   if (plane.y - ROTATION_STEP < Y_BOTTOM_LIMIT) {
     plane.y = Y_BOTTOM_LIMIT;
-    earth.y += ROTATION_STEP * Math.cos(toRadians(earth.x));
-    earth.z += ROTATION_STEP * Math.sin(toRadians(earth.x));
-    return { plane, earth, earthMoved: true };
+    return { plane, earthDelta: { axisX: 0, axisY: 1, axisZ: 0, angleDeg: ROTATION_STEP } };
   }
 
   plane.y -= ROTATION_STEP;
-  return { plane, earth, earthMoved: false };
+  return { plane, earthDelta: null };
 }
 
 export function getPlanePerspectiveTarget(up, down, left, right) {

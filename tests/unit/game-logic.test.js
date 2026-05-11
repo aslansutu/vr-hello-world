@@ -83,69 +83,56 @@ describe('isTouchDevice', () => {
 
 describe('computeFlyUp', () => {
   it('decrements plane.x by ROTATION_STEP when not at limit', () => {
-    const result = computeFlyUp({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+    const result = computeFlyUp({ x: 0, y: 0, z: 0 });
     expect(result.plane.x).toBe(-1);
   });
 
-  it('does not move earth when not at limit', () => {
-    const result = computeFlyUp({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
-    expect(result.earthMoved).toBe(false);
-    expect(result.earth.x).toBe(0);
-    expect(result.earth.z).toBe(0);
+  it('earthDelta is null when not at limit', () => {
+    const result = computeFlyUp({ x: 0, y: 0, z: 0 });
+    expect(result.earthDelta).toBeNull();
   });
 
-  it('clamps plane.x to X_BOTTOM_LIMIT and sets earthMoved=true when at limit', () => {
-    const result = computeFlyUp({ x: -10, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+  it('clamps plane.x to X_BOTTOM_LIMIT at limit', () => {
+    const result = computeFlyUp({ x: -10, y: 0, z: 0 });
     expect(result.plane.x).toBe(-10);
-    expect(result.earthMoved).toBe(true);
   });
 
-  it('at limit with earth.y=0: earth.x increases by 1 and earth.z stays ~0', () => {
-    const result = computeFlyUp({ x: -10, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
-    expect(result.earth.x).toBeCloseTo(1);
-    expect(result.earth.z).toBeCloseTo(0);
+  it('returns earthDelta when at limit', () => {
+    const result = computeFlyUp({ x: -10, y: 0, z: 0 });
+    expect(result.earthDelta).not.toBeNull();
   });
 
-  it('at limit with earth.y=90: earth.x stays ~0 and earth.z increases by 1', () => {
-    const result = computeFlyUp({ x: -10, y: 0, z: 0 }, { x: 0, y: 90, z: 0 });
-    expect(result.earth.x).toBeCloseTo(0, 5);
-    expect(result.earth.z).toBeCloseTo(1);
+  it('earthDelta specifies world +X axis rotation by ROTATION_STEP', () => {
+    const result = computeFlyUp({ x: -10, y: 0, z: 0 });
+    expect(result.earthDelta.axisX).toBe(1);
+    expect(result.earthDelta.axisY).toBe(0);
+    expect(result.earthDelta.axisZ).toBe(0);
+    expect(result.earthDelta.angleDeg).toBe(ROTATION_STEP);
   });
 
-  it('x=-9 steps to -10 without moving earth', () => {
-    const result = computeFlyUp({ x: -9, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+  it('x=-9 steps to -10 without earthDelta', () => {
+    const result = computeFlyUp({ x: -9, y: 0, z: 0 });
     expect(result.plane.x).toBe(-10);
-    expect(result.earthMoved).toBe(false);
+    expect(result.earthDelta).toBeNull();
   });
 
-  it('uses earth.y (not earth.x) in trig calculation — critical regression guard', () => {
-    const result = computeFlyUp({ x: -10, y: 0, z: 0 }, { x: 999, y: 45, z: 0 });
-    // earth.x starts at 999; if code correctly uses earth.y the delta is cos(45°)
-    expect(result.earth.x - 999).toBeCloseTo(Math.cos(Math.PI / 4));
-    expect(result.earth.z).toBeCloseTo(Math.sin(Math.PI / 4));
-  });
-
-  it('does not mutate input objects', () => {
+  it('does not mutate input object', () => {
     const plane = { x: 0, y: 0, z: 0 };
-    const earth = { x: 0, y: 0, z: 0 };
-    computeFlyUp(plane, earth);
+    computeFlyUp(plane);
     expect(plane.x).toBe(0);
-    expect(earth.x).toBe(0);
   });
 
   it('preserves plane.y and plane.z', () => {
-    const result = computeFlyUp({ x: 0, y: 5, z: 3 }, { x: 0, y: 0, z: 0 });
+    const result = computeFlyUp({ x: 0, y: 5, z: 3 });
     expect(result.plane.y).toBe(5);
     expect(result.plane.z).toBe(3);
   });
 
   it('sequential calls clamp plane.x and keep it at limit', () => {
     let plane = { x: -8, y: 0, z: 0 };
-    let earth = { x: 0, y: 0, z: 0 };
     for (let i = 0; i < 5; i++) {
-      const result = computeFlyUp(plane, earth);
+      const result = computeFlyUp(plane);
       plane = result.plane;
-      earth = result.earth;
     }
     expect(plane.x).toBe(-10);
   });
@@ -155,45 +142,38 @@ describe('computeFlyUp', () => {
 
 describe('computeFlyDown', () => {
   it('increments plane.x by ROTATION_STEP when not at limit', () => {
-    const result = computeFlyDown({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+    const result = computeFlyDown({ x: 0, y: 0, z: 0 });
     expect(result.plane.x).toBe(1);
-    expect(result.earthMoved).toBe(false);
+    expect(result.earthDelta).toBeNull();
   });
 
-  it('clamps plane.x to X_TOP_LIMIT and sets earthMoved=true when at limit', () => {
-    const result = computeFlyDown({ x: 60, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+  it('clamps plane.x to X_TOP_LIMIT at limit', () => {
+    const result = computeFlyDown({ x: 60, y: 0, z: 0 });
     expect(result.plane.x).toBe(60);
-    expect(result.earthMoved).toBe(true);
   });
 
-  it('at top limit with earth.y=0: earth.x decreases by 1, earth.z stays ~0', () => {
-    const result = computeFlyDown({ x: 60, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
-    expect(result.earth.x).toBeCloseTo(-1);
-    expect(result.earth.z).toBeCloseTo(0);
+  it('returns earthDelta when at limit', () => {
+    const result = computeFlyDown({ x: 60, y: 0, z: 0 });
+    expect(result.earthDelta).not.toBeNull();
   });
 
-  it('at top limit with earth.y=90: earth.x stays ~0, earth.z decreases by 1', () => {
-    const result = computeFlyDown({ x: 60, y: 0, z: 0 }, { x: 0, y: 90, z: 0 });
-    expect(result.earth.x).toBeCloseTo(0, 5);
-    expect(result.earth.z).toBeCloseTo(-1);
+  it('earthDelta specifies world +X axis rotation by -ROTATION_STEP', () => {
+    const result = computeFlyDown({ x: 60, y: 0, z: 0 });
+    expect(result.earthDelta.axisX).toBe(1);
+    expect(result.earthDelta.axisY).toBe(0);
+    expect(result.earthDelta.axisZ).toBe(0);
+    expect(result.earthDelta.angleDeg).toBe(-ROTATION_STEP);
   });
 
-  it('x=59 steps to 60 without moving earth', () => {
-    const result = computeFlyDown({ x: 59, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+  it('x=59 steps to 60 without earthDelta', () => {
+    const result = computeFlyDown({ x: 59, y: 0, z: 0 });
     expect(result.plane.x).toBe(60);
-    expect(result.earthMoved).toBe(false);
+    expect(result.earthDelta).toBeNull();
   });
 
-  it('uses earth.y (not earth.x) in trig calculation — critical regression guard', () => {
-    const result = computeFlyDown({ x: 60, y: 0, z: 0 }, { x: 999, y: 45, z: 0 });
-    // earth.x starts at 999; if code correctly uses earth.y the delta is -cos(45°)
-    expect(result.earth.x - 999).toBeCloseTo(-Math.cos(Math.PI / 4));
-    expect(result.earth.z).toBeCloseTo(-Math.sin(Math.PI / 4));
-  });
-
-  it('does not mutate input objects', () => {
+  it('does not mutate input object', () => {
     const plane = { x: 0, y: 0, z: 0 };
-    computeFlyDown(plane, { x: 0, y: 0, z: 0 });
+    computeFlyDown(plane);
     expect(plane.x).toBe(0);
   });
 });
@@ -202,45 +182,44 @@ describe('computeFlyDown', () => {
 
 describe('computeFlyRight', () => {
   it('increments plane.y by ROTATION_STEP when not at limit', () => {
-    const result = computeFlyRight({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+    const result = computeFlyRight({ x: 0, y: 0, z: 0 });
     expect(result.plane.y).toBe(1);
-    expect(result.earthMoved).toBe(false);
+    expect(result.earthDelta).toBeNull();
   });
 
-  it('clamps plane.y to Y_TOP_LIMIT and sets earthMoved=true when at limit', () => {
-    const result = computeFlyRight({ x: 0, y: 40, z: 0 }, { x: 0, y: 0, z: 0 });
+  it('clamps plane.y to Y_TOP_LIMIT at limit', () => {
+    const result = computeFlyRight({ x: 0, y: 40, z: 0 });
     expect(result.plane.y).toBe(40);
-    expect(result.earthMoved).toBe(true);
   });
 
-  it('at right limit with earth.x=0: earth.y decreases by 1, earth.z stays ~0', () => {
-    const result = computeFlyRight({ x: 0, y: 40, z: 0 }, { x: 0, y: 0, z: 0 });
-    expect(result.earth.y).toBeCloseTo(-1);
-    expect(result.earth.z).toBeCloseTo(0);
+  it('returns earthDelta when at limit', () => {
+    const result = computeFlyRight({ x: 0, y: 40, z: 0 });
+    expect(result.earthDelta).not.toBeNull();
   });
 
-  it('uses earth.x (not earth.y) in trig calculation — critical regression guard', () => {
-    const result = computeFlyRight({ x: 0, y: 40, z: 0 }, { x: 45, y: 999, z: 0 });
-    // earth.y starts at 999; if code correctly uses earth.x the delta is -cos(45°)
-    expect(result.earth.y - 999).toBeCloseTo(-Math.cos(Math.PI / 4));
-    expect(result.earth.z).toBeCloseTo(-Math.sin(Math.PI / 4));
+  it('earthDelta specifies world +Y axis rotation by -ROTATION_STEP', () => {
+    const result = computeFlyRight({ x: 0, y: 40, z: 0 });
+    expect(result.earthDelta.axisX).toBe(0);
+    expect(result.earthDelta.axisY).toBe(1);
+    expect(result.earthDelta.axisZ).toBe(0);
+    expect(result.earthDelta.angleDeg).toBe(-ROTATION_STEP);
   });
 
-  it('y=39 steps to 40 without moving earth', () => {
-    const result = computeFlyRight({ x: 0, y: 39, z: 0 }, { x: 0, y: 0, z: 0 });
+  it('y=39 steps to 40 without earthDelta', () => {
+    const result = computeFlyRight({ x: 0, y: 39, z: 0 });
     expect(result.plane.y).toBe(40);
-    expect(result.earthMoved).toBe(false);
+    expect(result.earthDelta).toBeNull();
   });
 
   it('preserves plane.x and plane.z', () => {
-    const result = computeFlyRight({ x: 5, y: 0, z: 3 }, { x: 0, y: 0, z: 0 });
+    const result = computeFlyRight({ x: 5, y: 0, z: 3 });
     expect(result.plane.x).toBe(5);
     expect(result.plane.z).toBe(3);
   });
 
-  it('does not mutate input objects', () => {
+  it('does not mutate input object', () => {
     const plane = { x: 0, y: 0, z: 0 };
-    computeFlyRight(plane, { x: 0, y: 0, z: 0 });
+    computeFlyRight(plane);
     expect(plane.y).toBe(0);
   });
 });
@@ -249,39 +228,38 @@ describe('computeFlyRight', () => {
 
 describe('computeFlyLeft', () => {
   it('decrements plane.y by ROTATION_STEP when not at limit', () => {
-    const result = computeFlyLeft({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+    const result = computeFlyLeft({ x: 0, y: 0, z: 0 });
     expect(result.plane.y).toBe(-1);
-    expect(result.earthMoved).toBe(false);
+    expect(result.earthDelta).toBeNull();
   });
 
-  it('clamps plane.y to Y_BOTTOM_LIMIT and sets earthMoved=true when at limit', () => {
-    const result = computeFlyLeft({ x: 0, y: -40, z: 0 }, { x: 0, y: 0, z: 0 });
+  it('clamps plane.y to Y_BOTTOM_LIMIT at limit', () => {
+    const result = computeFlyLeft({ x: 0, y: -40, z: 0 });
     expect(result.plane.y).toBe(-40);
-    expect(result.earthMoved).toBe(true);
   });
 
-  it('at left limit with earth.x=0: earth.y increases by 1, earth.z stays ~0', () => {
-    const result = computeFlyLeft({ x: 0, y: -40, z: 0 }, { x: 0, y: 0, z: 0 });
-    expect(result.earth.y).toBeCloseTo(1);
-    expect(result.earth.z).toBeCloseTo(0);
+  it('returns earthDelta when at limit', () => {
+    const result = computeFlyLeft({ x: 0, y: -40, z: 0 });
+    expect(result.earthDelta).not.toBeNull();
   });
 
-  it('uses earth.x (not earth.y) in trig calculation — critical regression guard', () => {
-    const result = computeFlyLeft({ x: 0, y: -40, z: 0 }, { x: 45, y: 999, z: 0 });
-    // earth.y starts at 999; if code correctly uses earth.x the delta is cos(45°)
-    expect(result.earth.y - 999).toBeCloseTo(Math.cos(Math.PI / 4));
-    expect(result.earth.z).toBeCloseTo(Math.sin(Math.PI / 4));
+  it('earthDelta specifies world +Y axis rotation by +ROTATION_STEP', () => {
+    const result = computeFlyLeft({ x: 0, y: -40, z: 0 });
+    expect(result.earthDelta.axisX).toBe(0);
+    expect(result.earthDelta.axisY).toBe(1);
+    expect(result.earthDelta.axisZ).toBe(0);
+    expect(result.earthDelta.angleDeg).toBe(ROTATION_STEP);
   });
 
-  it('y=-39 steps to -40 without moving earth', () => {
-    const result = computeFlyLeft({ x: 0, y: -39, z: 0 }, { x: 0, y: 0, z: 0 });
+  it('y=-39 steps to -40 without earthDelta', () => {
+    const result = computeFlyLeft({ x: 0, y: -39, z: 0 });
     expect(result.plane.y).toBe(-40);
-    expect(result.earthMoved).toBe(false);
+    expect(result.earthDelta).toBeNull();
   });
 
-  it('does not mutate input objects', () => {
+  it('does not mutate input object', () => {
     const plane = { x: 0, y: 0, z: 0 };
-    computeFlyLeft(plane, { x: 0, y: 0, z: 0 });
+    computeFlyLeft(plane);
     expect(plane.y).toBe(0);
   });
 });

@@ -21,6 +21,27 @@ function _getRotation(id) {
   return { x: r.x, y: r.y, z: r.z };
 }
 
+// Rotate an A-Frame element around a world-space axis by angleDeg degrees.
+// Uses quaternion pre-multiplication (Q_new = delta * Q) so the axis is always
+// in world space regardless of the element's current orientation.
+function applyWorldRotation(el, axisX, axisY, axisZ, angleDeg) {
+  const half = angleDeg * Math.PI / 360;
+  const s = Math.sin(half);
+  const dw = Math.cos(half), dx = axisX * s, dy = axisY * s, dz = axisZ * s;
+  const q = el.object3D.quaternion;
+  const qx = q.x, qy = q.y, qz = q.z, qw = q.w;
+  el.object3D.quaternion.set(
+    dw*qx + dx*qw + dy*qz - dz*qy,
+    dw*qy - dx*qz + dy*qw + dz*qx,
+    dw*qz + dx*qy - dy*qx + dz*qw,
+    dw*qw - dx*qx - dy*qy - dz*qz,
+  );
+  // Sync the A-Frame rotation attribute so getAttribute('rotation') stays correct.
+  const r = el.object3D.rotation;
+  const R2D = 180 / Math.PI;
+  el.setAttribute('rotation', { x: r.x * R2D, y: r.y * R2D, z: r.z * R2D });
+}
+
 function update_plane_perspective() {
   const target = getPlanePerspectiveTarget(rotateUp, rotateDown, rotateLeft, rotateRight);
   if (target) {
@@ -36,30 +57,42 @@ function update_plane_perspective() {
 
 function flyUp() {
   update_plane_perspective();
-  const result = computeFlyUp(_getRotation("plane"), _getRotation("earth"));
+  const result = computeFlyUp(_getRotation("plane"));
   document.getElementById("plane").setAttribute("rotation", result.plane);
-  if (result.earthMoved) document.getElementById("earth").setAttribute("rotation", result.earth);
+  if (result.earthDelta) {
+    const { axisX, axisY, axisZ, angleDeg } = result.earthDelta;
+    applyWorldRotation(document.getElementById("earth"), axisX, axisY, axisZ, angleDeg);
+  }
 }
 
 function flyDown() {
   update_plane_perspective();
-  const result = computeFlyDown(_getRotation("plane"), _getRotation("earth"));
+  const result = computeFlyDown(_getRotation("plane"));
   document.getElementById("plane").setAttribute("rotation", result.plane);
-  if (result.earthMoved) document.getElementById("earth").setAttribute("rotation", result.earth);
+  if (result.earthDelta) {
+    const { axisX, axisY, axisZ, angleDeg } = result.earthDelta;
+    applyWorldRotation(document.getElementById("earth"), axisX, axisY, axisZ, angleDeg);
+  }
 }
 
 function flyRight() {
   update_plane_perspective();
-  const result = computeFlyRight(_getRotation("plane"), _getRotation("earth"));
+  const result = computeFlyRight(_getRotation("plane"));
   document.getElementById("plane").setAttribute("rotation", result.plane);
-  if (result.earthMoved) document.getElementById("earth").setAttribute("rotation", result.earth);
+  if (result.earthDelta) {
+    const { axisX, axisY, axisZ, angleDeg } = result.earthDelta;
+    applyWorldRotation(document.getElementById("earth"), axisX, axisY, axisZ, angleDeg);
+  }
 }
 
 function flyLeft() {
   update_plane_perspective();
-  const result = computeFlyLeft(_getRotation("plane"), _getRotation("earth"));
+  const result = computeFlyLeft(_getRotation("plane"));
   document.getElementById("plane").setAttribute("rotation", result.plane);
-  if (result.earthMoved) document.getElementById("earth").setAttribute("rotation", result.earth);
+  if (result.earthDelta) {
+    const { axisX, axisY, axisZ, angleDeg } = result.earthDelta;
+    applyWorldRotation(document.getElementById("earth"), axisX, axisY, axisZ, angleDeg);
+  }
 }
 
 function animateRotation() {
