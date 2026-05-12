@@ -7,4 +7,4 @@ WORKDIR /app
 COPY . /app
 
 # Start Python server
-CMD ["python", "-m", "http.server"]
+CMD ["python", "-m", "http.server", "8000", "-b", "0.0.0.0"]
