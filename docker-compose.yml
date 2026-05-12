@@ -1,5 +1,5 @@
 services:
-  web:
+  web-vr:
     build: .
     pull_policy: build
     restart: unless-stopped
